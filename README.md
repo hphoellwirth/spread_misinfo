@@ -1,5 +1,5 @@
 # Simulating Spread of (Mis)information in Social Networks
-Course: 14D009 Social and Economic Networks
+Course: 14D009 Social and Economic Networks \n
 Author: Hans-Peter Höllwirth 
 
 ## Literature
