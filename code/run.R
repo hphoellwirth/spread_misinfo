@@ -39,45 +39,49 @@ source('simulation.R')
 # - Optionally, a (small) subset of agents might be initialized with a misinformation.
 # - Each node has a „forceful“ factor that determines, how strongly the node insists on its current belief. 
 
-# (1) generate (or load) random network
+# generate/load/save random network
 #d <- c(2,2,3,1,3,1,4,4,4,2,1,5)
 #G <- gen.network(d, same.weights = TRUE)
 #G <- load.network('G10')
 #G <- gen.network.exp(12)
 #n <- vcount(G)
-plot(G, edge.width=E(G)$weight)
-
-# (2) save network
+#plot(G, edge.width=E(G)$weight)
 #save.network(G,'exp12_01')
 
-# (3) assign initial belief (and misinformation)
-beliefs.init <- rnorm(n, mean=0, sd=1)
+# summarize process
+#beliefs.init <- rnorm(n, mean=0, sd=1)
+#beliefs <- simExchange(G, beliefs.init, T=100)$beliefs.final
+#result <- data.frame(matrix(nrow=n, ncol=3), row.names=(1:n))
+#colnames(result) <- c('beliefs.init', 'beliefs.T', 'beliefs.diff')
+#result[,1] <- beliefs.init
+#result[,2] <- beliefs
+#result[,3] <- abs(beliefs.init - mean(beliefs))
 
-# (4) simulate exchange of information
-beliefs <- simExchange(G, beliefs.init, T=100)$beliefs.final
-
-# (5) summarize process
-result <- data.frame(matrix(nrow=n, ncol=3), row.names=(1:n))
-colnames(result) <- c('beliefs.init', 'beliefs.T', 'beliefs.diff')
-result[,1] <- beliefs.init
-result[,2] <- beliefs
-result[,3] <- abs(beliefs.init - mean(beliefs))
-
-# (6) document convergence in presence of misinformation
-set.seed(2000)
+# ----------------------------------------------------------------------
+# Exponential degree distribution - exp12_01 
+# ----------------------------------------------------------------------
 G <- load.network('exp12_01')
+plot(G, edge.width=E(G)$weight)
+
+# (1) plot belief convergence with misinformation at one node (without being forceful)
+set.seed(2002)
+beliefs.init <- rnorm(vcount(G), mean=0, sd=1)
+beliefs.init[4] <- 5
+beliefs.hist <- sim.exchange(G, beliefs.init, T=300)$beliefs.hist
+plot.convergence(beliefs.hist)
+
+# (2) plot belief convergence with one forceful agent
+set.seed(2002)
+beliefs.init <- rnorm(vcount(G), mean=0, sd=1)
+beliefs.init[4] <- 5
+beliefs.hist <- sim.exchange.forceful(G, beliefs.init, forceful.agents=4, forceful.probs=c(0.8,0.2,0.0), eps=0.4, T=300)$beliefs.hist
+plot.convergence(beliefs.hist)
+
+# (3) plot standard deviation convergence in presence of misinformation
+set.seed(2000)
 beliefs.init <- rnorm(vcount(G), mean=0, sd=1)
 conv.table <- misinfo.impact(G, beliefs.init, T=500)
 plot.sd.convergence(conv.table)
-
-# (7) belief with misinformation at node 4
-set.seed(2000)
-G <- load.network('exp12_01')
-beliefs.misinfo <- rnorm(vcount(G), mean=0, sd=1)
-beliefs.misinfo[4] <- 10
-beliefs.hist <- simExchange(G, beliefs.misinfo, T=500)$beliefs.hist
-plot.convergence(beliefs.hist)
-
 
 
 
