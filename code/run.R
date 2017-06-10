@@ -17,6 +17,7 @@
 # house cleaning
 rm(list = ls())
 par(mfrow=c(1,1), mar=c(4,4,1,1))
+save.plots <- FALSE
 
 # if interactive, during the development, set to TRUE
 interactive <- FALSE
@@ -29,6 +30,7 @@ library(igraph)
 
 source('network.R')
 source('simulation.R')
+source('plot.R')
 
 # ----------------------------------------------------------------------
 # Simulate Spread of (mis)information 
@@ -58,24 +60,32 @@ source('simulation.R')
 #result[,3] <- abs(beliefs.init - mean(beliefs))
 
 # ----------------------------------------------------------------------
-# Exponential degree distribution - exp12_01 
+# Exponential degree distribution - exp12
 # ----------------------------------------------------------------------
+if(save.plots) png('../images/exp12_network.png', width=700, height=700, pointsize=15)
 G <- load.network('exp12_01')
-plot(G, edge.width=E(G)$weight)
+plot.network(G, forceful.agents=c(4))
+if(save.plots) dev.off()
 
 # (1) plot belief convergence with misinformation at one node (without being forceful)
+T <- 1000
+if(save.plots) png(paste0('../images/exp12_conv_standard_',T,'.png'), width=1000, height=700, pointsize=15)
 set.seed(2002)
 beliefs.init <- rnorm(vcount(G), mean=0, sd=1)
 beliefs.init[4] <- 5
-beliefs.hist <- sim.exchange(G, beliefs.init, T=300)$beliefs.hist
+beliefs.hist <- sim.exchange(G, beliefs.init, T=T)$beliefs.hist
 plot.convergence(beliefs.hist)
+if(save.plots) dev.off()
 
 # (2) plot belief convergence with one forceful agent
+T <- 2000
+if(save.plots) png(paste0('../images/exp12_conv_forceful_',T,'.png'), width=1000, height=700, pointsize=15)
 set.seed(2002)
 beliefs.init <- rnorm(vcount(G), mean=0, sd=1)
 beliefs.init[4] <- 5
-beliefs.hist <- sim.exchange.forceful(G, beliefs.init, forceful.agents=4, forceful.probs=c(0.8,0.2,0.0), eps=0.4, T=300)$beliefs.hist
+beliefs.hist <- sim.exchange.forceful(G, beliefs.init, forceful.agents=4, forceful.probs=c(0.8,0.2,0.0), eps=0.4, T=T)$beliefs.hist
 plot.convergence(beliefs.hist)
+if(save.plots) dev.off()
 
 # (3) plot standard deviation convergence in presence of misinformation
 set.seed(2000)
