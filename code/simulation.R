@@ -23,20 +23,17 @@ library(igraph)
 
 # simulate information exchange
 sim.exchange <- function(G, beliefs.init, T=1000) {
-    sd.belief <- rep(0,T+1)
     beliefs.hist <- matrix(nrow=vcount(G), ncol=T+1)
     beliefs.hist[,1] <- beliefs <- beliefs.init
     
     meets <- sample(length(E(G)), T, replace=TRUE, prob=E(G)$weight)
     for (t in 1:T) {
-        sd.belief[t] <- sd(beliefs)
         meeters <- ends(G, E(G)[meets[t]])
         beliefs[meeters] <- mean(beliefs[meeters])
         beliefs.hist[,t+1] <- beliefs
     }
     
-    sd.belief[T+1] <- sd(beliefs)
-    return(list(beliefs.final=beliefs, beliefs.hist=beliefs.hist, sd.convergence=sd.belief))
+    return(list(beliefs.final=beliefs, beliefs.hist=beliefs.hist))
 }
 
 # ----------------------------------------------------------------------
@@ -97,7 +94,6 @@ sim.meeting <- function(i.belief, j.belief, i.forceful, forceful.prob, eps) {
 
 # simulate information exchange including forceful agents
 sim.exchange.forceful <- function(G, beliefs.init, forceful.agents, forceful.probs=c(0.6,0.3,0.1), eps=0.5, T=1000) {
-    sd.belief <- rep(0,T+1)
     beliefs.hist <- matrix(nrow=vcount(G), ncol=T+1)
     beliefs.hist[,1] <- beliefs <- beliefs.init
     
@@ -109,7 +105,6 @@ sim.exchange.forceful <- function(G, beliefs.init, forceful.agents, forceful.pro
     # simulate meetings between agents
     meets <- sample(length(E(G)), T, replace=TRUE, prob=E(G)$weight)
     for (t in 1:T) {
-        sd.belief[t] <- sd(beliefs)
         meeters <- ends(G, E(G)[meets[t]])
         i <- meeters[1]
         j <- meeters[2]
@@ -119,28 +114,61 @@ sim.exchange.forceful <- function(G, beliefs.init, forceful.agents, forceful.pro
         
         beliefs[i] <- new.beliefs$i.belief
         beliefs[j] <- new.beliefs$j.belief
-        #beliefs[i] <- beliefs[j] <- mean(c(beliefs[i], beliefs[j]))
         beliefs.hist[,t+1] <- beliefs
     }
     
-    sd.belief[T+1] <- sd(beliefs)
-    return(list(beliefs.final=beliefs, beliefs.hist=beliefs.hist, sd.convergence=sd.belief))
+    return(list(beliefs.final=beliefs, beliefs.hist=beliefs.hist))
 }
 
+# ----------------------------------------------------------------------
+# Document convergence of moments
+# ----------------------------------------------------------------------
 
-# document the convergence of the group belief's standard deviation for different spreaders of misinformation
-misinfo.impact <- function(G, beliefs.init, T=1000) {
+# convergence of the mean belief for different forceful agents
+conv.mean.forceful <- function(G, beliefs.init, T=1000) {
     n <- vcount(G)
     conv.table <- matrix(nrow=n, ncol=T+1)
     
     # spread misinformation
     for (i in 1:n) {
         beliefs.start <- beliefs.init
-        beliefs.start[i] <- 10
-        conv.table[i,] <- sim.exchange(G, beliefs.start, T)$sd.convergence
+        beliefs.start[i] <- 5
+        beliefs.hist <- sim.exchange.forceful(G, beliefs.start, forceful.agents=i, forceful.probs=c(0.8,0.2,0.0), eps=0.4, T)$beliefs.hist
+        conv.table[i,] <- colMeans(beliefs.hist)
     }
     return(conv.table)
 }
+
+# convergence of the group belief's standard deviation for different spreaders of misinformation
+conv.sd <- function(G, beliefs.init, T=1000) {
+    n <- vcount(G)
+    conv.table <- matrix(nrow=n, ncol=T+1)
+    
+    # spread misinformation
+    for (i in 1:n) {
+        beliefs.start <- beliefs.init
+        beliefs.start[i] <- 5
+        beliefs.hist <- sim.exchange(G, beliefs.start, T)$beliefs.hist
+        conv.table[i,] <- apply(beliefs.hist, 2, sd)
+    }
+    return(conv.table)
+}
+
+# convergence of the group belief's standard deviation for different forceful agents
+conv.sd.forceful <- function(G, beliefs.init, T=1000) {
+    n <- vcount(G)
+    conv.table <- matrix(nrow=n, ncol=T+1)
+    
+    # spread misinformation
+    for (i in 1:n) {
+        beliefs.start <- beliefs.init
+        beliefs.start[i] <- 5
+        beliefs.hist <- sim.exchange.forceful(G, beliefs.start, forceful.agents=i, forceful.probs=c(0.8,0.2,0.0), eps=0.4, T)$beliefs.hist
+        conv.table[i,] <- apply(beliefs.hist, 2, sd)
+    }
+    return(conv.table)
+}
+
 
 
 

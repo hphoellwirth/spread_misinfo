@@ -47,6 +47,19 @@ plot.convergence <- function(beliefs.hist) {
     #legend(T-50, max(conv.table)-0.1, legend=(1:n), lty=rep(1,n), lwd=rep(2.5,n), col=col.scheme, cex=0.7)
 }
 
+# plot convergence of the mean belief 
+plot.mean.convergence <- function(conv.table) {
+    n <- nrow(conv.table)
+    T <- ncol(conv.table)
+    
+    col.scheme <- rainbow(n)
+    plot(conv.table[1,], type='l', xlab='time t', ylab='mean belief', ylim=c(min(conv.table),max(conv.table)), col=col.scheme[1])
+    for (i in 2:n) {
+        lines(conv.table[i,], col=col.scheme[i])
+    }
+    text(x=(T+2), y=conv.table[,T], pos=4, labels=(1:n), cex=0.8)
+}
+
 # plot convergence of the group belief's standard deviation 
 plot.sd.convergence <- function(conv.table) {
     n <- nrow(conv.table)
@@ -58,7 +71,7 @@ plot.sd.convergence <- function(conv.table) {
         lines(conv.table[i,], col=col.scheme[i])
     }
     text(x=(T+2), y=conv.table[,T], pos=4, labels=(1:n), cex=0.6)
-    #legend(T-50, max(conv.table)-0.1, legend=(1:n), lty=rep(1,n), lwd=rep(2.5,n), col=col.scheme, cex=0.7)
+    legend(0.80 * T, max(conv.table)-0.1, legend=(1:n), lty=rep(1,n), lwd=rep(2.5,n), col=col.scheme, cex=0.7)
 }
 
 
