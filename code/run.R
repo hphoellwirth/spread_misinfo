@@ -16,8 +16,9 @@
 
 # house cleaning
 rm(list = ls())
-par(mfrow=c(1,1), mar=c(4,4,1,1))
 save.plots <- FALSE
+col.scheme.12 <- c('dodgerblue', 'orange', 'sienna', 'green', 'yellow', 'magenta', 'blue', 'cyan', 'red', 'deeppink', 'forestgreen', 'purple')
+
 
 # if interactive, during the development, set to TRUE
 interactive <- FALSE
@@ -62,59 +63,59 @@ source('plot.R')
 # ----------------------------------------------------------------------
 # Exponential degree distribution - exp12
 # ----------------------------------------------------------------------
-if(save.plots) png('../images/exp12_network_4.png', width=700, height=700, pointsize=15)
-set.seed(2002)
+if(save.plots) png('../images/exp12_network_colored_small.png', width=700, height=700, pointsize=15)
+set.seed(2013)
 G <- load.network('exp12_01')
-plot.network(G, forceful.agents=c(4))
+plot.network(G, forceful.agents=c(), colors=col.scheme.12)
 if(save.plots) dev.off()
 
 # (1) plot belief convergence with misinformation at one node (without being forceful)
-T <- 2000
-if(save.plots) png(paste0('../images/exp12_conv_standard_34_',T,'.png'), width=1000, height=700, pointsize=15)
+T <- 300
+if(save.plots) png(paste0('../images/exp12_conv_misinfo_',T,'.png'), width=1000, height=700, pointsize=16)
 set.seed(2002)
 beliefs.init <- rnorm(vcount(G), mean=0, sd=1)
-beliefs.init[3] <- 5
+#beliefs.init[3] <- 5
 beliefs.init[4] <- 5
 beliefs.hist <- sim.exchange(G, beliefs.init, T=T)$beliefs.hist
-plot.convergence(beliefs.hist)
+plot.convergence(beliefs.hist, col.scheme.12, title='Belief convergence with misinformation (spread by node 4)')
 if(save.plots) dev.off()
 
 # (2) plot belief convergence with one forceful agent
 T <- 2000
-if(save.plots) png(paste0('../images/exp12_conv_forceful_34_',T,'.png'), width=1000, height=700, pointsize=15)
+if(save.plots) png(paste0('../images/exp12_conv_forceful_4_',T,'.png'), width=1000, height=700, pointsize=15)
 set.seed(2002)
 beliefs.init <- rnorm(vcount(G), mean=0, sd=1)
-beliefs.init[3] <- 5
+#beliefs.init[7] <- 5
 beliefs.init[4] <- 5
-beliefs.hist <- sim.exchange.forceful(G, beliefs.init, forceful.agents=c(3,4), forceful.probs=c(0.8,0.2,0.0), eps=0.4, T=T)$beliefs.hist
-plot.convergence(beliefs.hist)
+beliefs.hist <- sim.exchange.forceful(G, beliefs.init, forceful.agents=c(4), forceful.probs=c(0.8,0.2,0.0), eps=0.4, T=T)$beliefs.hist
+plot.convergence(beliefs.hist, col.scheme.12, title='Belief convergence with forceful misinformation (spread by agent 4)')
 if(save.plots) dev.off()
 
 # (3) plot mean convergence with one forceful agent
 T <- 1500
-if(save.plots) png(paste0('../images/exp12_conv_mean_',T,'.png'), width=700, height=500, pointsize=15)
-set.seed(2002)
+if(save.plots) png(paste0('../images/exp12_conv_mean_',T,'_2.png'), width=1000, height=700, pointsize=15)
+set.seed(2003)
 beliefs.init <- rnorm(vcount(G), mean=0, sd=0.01)
 conv.table <- conv.mean.forceful(G, beliefs.init, T)
-plot.mean.convergence(conv.table)
+plot.mean.convergence(conv.table, col.scheme.12, title='Mean belief convergence with one forceful agent')
 if(save.plots) dev.off()
 
 # (4) plot standard deviation convergence in presence of misinformation (without being forceful)
 T <- 2000
-if(save.plots) png(paste0('../images/exp12_conv_sd_',T,'.png'), width=700, height=500, pointsize=15)
+if(save.plots) png(paste0('../images/exp12_conv_sd_',T,'.png'), width=1000, height=700, pointsize=15)
 set.seed(2002)
 beliefs.init <- rnorm(vcount(G), mean=0, sd=1)
 conv.table <- conv.sd(G, beliefs.init, T)
-plot.sd.convergence(conv.table)
+plot.sd.convergence(conv.table, col.scheme.12, title='Belief deviation in presence of misinformation')
 if(save.plots) dev.off()
 
 # (5) plot standard deviation convergence with one forceful agent
 T <- 2000
-if(save.plots) png(paste0('../images/exp12_conv_sd_forceful_',T,'.png'), width=700, height=500, pointsize=15)
+if(save.plots) png(paste0('../images/exp12_conv_sd_forceful_',T,'.png'), width=1000, height=700, pointsize=15)
 set.seed(2002)
 beliefs.init <- rnorm(vcount(G), mean=0, sd=1)
 conv.table <- conv.sd.forceful(G, beliefs.init, T)
-plot.sd.convergence(conv.table)
+plot.sd.convergence(conv.table, col.scheme.12, title='Belief deviation in presence of forceful agent')
 if(save.plots) dev.off()
 
 
