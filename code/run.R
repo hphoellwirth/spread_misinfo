@@ -74,7 +74,6 @@ T <- 300
 if(save.plots) png(paste0('../images/exp12_conv_misinfo_',T,'.png'), width=1000, height=700, pointsize=16)
 set.seed(2002)
 beliefs.init <- rnorm(vcount(G), mean=0, sd=1)
-#beliefs.init[3] <- 5
 beliefs.init[4] <- 5
 beliefs.hist <- sim.exchange(G, beliefs.init, T=T)$beliefs.hist
 plot.convergence(beliefs.hist, col.scheme.12, title='Belief convergence with misinformation (spread by node 4)')
@@ -85,7 +84,6 @@ T <- 2000
 if(save.plots) png(paste0('../images/exp12_conv_forceful_4_',T,'.png'), width=1000, height=700, pointsize=15)
 set.seed(2002)
 beliefs.init <- rnorm(vcount(G), mean=0, sd=1)
-#beliefs.init[7] <- 5
 beliefs.init[4] <- 5
 beliefs.hist <- sim.exchange.forceful(G, beliefs.init, forceful.agents=c(4), forceful.probs=c(0.8,0.2,0.0), eps=0.4, T=T)$beliefs.hist
 plot.convergence(beliefs.hist, col.scheme.12, title='Belief convergence with forceful misinformation (spread by agent 4)')
@@ -118,7 +116,36 @@ conv.table <- conv.sd.forceful(G, beliefs.init, T)
 plot.sd.convergence(conv.table, col.scheme.12, title='Belief deviation in presence of forceful agent')
 if(save.plots) dev.off()
 
+# (6) plot belief convergence with 2 stubborn agents
+T <- 2000
+if(save.plots) png(paste0('../images/exp12_conv_stubborn_46_',T,'.png'), width=1000, height=700, pointsize=15)
+set.seed(2002)
+beliefs.init <- rnorm(vcount(G), mean=0, sd=1)
+beliefs.init[4] <- 5
+beliefs.init[7] <- -5
+beliefs.hist <- sim.exchange.forceful(G, beliefs.init, forceful.agents=c(4,7), forceful.probs=c(1,0,0.0), eps=0.4, T=T)$beliefs.hist
+plot.convergence(beliefs.hist, col.scheme.12, title='Belief convergence with 2 stubborn agents (4 and 7)')
+if(save.plots) dev.off()
 
+# (7) plot belief convergence with misinformation at one node (taking difference in beliefs into account)
+T <- 5000
+if(save.plots) png(paste0('../images/exp12_conv_misinfo_diff_',T,'.png'), width=1000, height=700, pointsize=16)
+set.seed(2002)
+beliefs.init <- rnorm(vcount(G), mean=0, sd=1)
+beliefs.init[4] <- 5
+beliefs.hist <- sim.exchange(G, beliefs.init, T=T, diff=TRUE)$beliefs.hist
+plot.convergence(beliefs.hist, col.scheme.12, title='Belief convergence with misinformation (spread by node 4)')
+if(save.plots) dev.off()
+
+# (8) plot belief convergence with one forceful agent (taking difference in beliefs into account)
+T <- 2000
+if(save.plots) png(paste0('../images/exp12_conv_forceful_diff_4_',T,'.png'), width=1000, height=700, pointsize=15)
+set.seed(2002)
+beliefs.init <- rnorm(vcount(G), mean=0, sd=1)
+beliefs.init[4] <- 5
+beliefs.hist <- sim.exchange.forceful(G, beliefs.init, forceful.agents=c(4), forceful.probs=c(0.8,0.2,0.0), eps=0.4, T=T, diff=TRUE)$beliefs.hist
+plot.convergence(beliefs.hist, col.scheme.12, title='Belief convergence with forceful misinformation (spread by agent 4)')
+if(save.plots) dev.off()
 
 
 

@@ -22,14 +22,18 @@ library(igraph)
 # ----------------------------------------------------------------------
 
 # simulate information exchange
-sim.exchange <- function(G, beliefs.init, T=1000) {
+sim.exchange <- function(G, beliefs.init, T=1000, diff=FALSE) {
     beliefs.hist <- matrix(nrow=vcount(G), ncol=T+1)
     beliefs.hist[,1] <- beliefs <- beliefs.init
     
     meets <- sample(length(E(G)), T, replace=TRUE, prob=E(G)$weight)
     for (t in 1:T) {
         meeters <- ends(G, E(G)[meets[t]])
-        beliefs[meeters] <- mean(beliefs[meeters])
+        
+        # if diff is set, make the probability of reaching consensus a function of the difference in beliefs
+        diff.belief <- abs(beliefs[meeters[1]] - beliefs[meeters[2]])
+        if (!diff || (runif(1) < dexp(diff.belief)))
+            beliefs[meeters] <- mean(beliefs[meeters])
         beliefs.hist[,t+1] <- beliefs
     }
     
@@ -67,33 +71,42 @@ gen.forceful.factors <- function(G, forceful, probs) {
 }
 
 # simulate a meeting between 2 agents i and j
-sim.meeting <- function(i.belief, j.belief, i.forceful, forceful.prob, eps) {
-    draw <- runif(1, min=0, max=1)
+sim.meeting <- function(i.belief, j.belief, i.forceful, forceful.prob, eps, diff) {
     
-    # one-sided influence (note: if alpha >0, either i or j must be forceful)
-    if (draw < forceful.prob$alpha) {
-        if (i.forceful) { 
-            i.new.belief <- i.belief
-            j.new.belief <- eps * (i.belief) + (1-eps) * (j.belief)
-        } else {
-            i.new.belief <- eps * (j.belief) + (1-eps) * (i.belief)
-            j.new.belief <- j.belief
-        }
-    } 
-    # pairwise concensus
-    else if (draw < (forceful.prob$alpha + forceful.prob$beta)) {
-        i.new.belief <- j.new.belief <- mean(c(i.belief, j.belief))
-    }
-    # both stick to their beliefs
-    else {
+    # if diff is set, make the probability of reaching consensus a function of the difference in beliefs
+    diff.belief <- abs(i.belief - j.belief)
+    if (diff && (runif(1) > dexp(diff.belief))) {
         i.new.belief <- i.belief
-        j.new.belief <- j.belief      
+        j.new.belief <- j.belief  
+    } 
+    else {
+        draw <- runif(1, min=0, max=1)
+    
+        # one-sided influence (note: if alpha >0, either i or j must be forceful)
+        if (draw < forceful.prob$alpha) {
+            if (i.forceful) { 
+                i.new.belief <- i.belief
+                j.new.belief <- eps * (i.belief) + (1-eps) * (j.belief)
+            } else {
+                i.new.belief <- eps * (j.belief) + (1-eps) * (i.belief)
+                j.new.belief <- j.belief
+            }
+        } 
+        # pairwise concensus
+        else if (draw < (forceful.prob$alpha + forceful.prob$beta)) {
+            i.new.belief <- j.new.belief <- mean(c(i.belief, j.belief))
+        }
+        # both stick to their beliefs
+        else {
+            i.new.belief <- i.belief
+            j.new.belief <- j.belief      
+        }
     }
     return(list(i.belief=i.new.belief, j.belief=j.new.belief))
 }
 
 # simulate information exchange including forceful agents
-sim.exchange.forceful <- function(G, beliefs.init, forceful.agents, forceful.probs=c(0.6,0.3,0.1), eps=0.5, T=1000) {
+sim.exchange.forceful <- function(G, beliefs.init, forceful.agents, forceful.probs=c(0.6,0.3,0.1), eps=0.5, T=1000, diff=FALSE) {
     beliefs.hist <- matrix(nrow=vcount(G), ncol=T+1)
     beliefs.hist[,1] <- beliefs <- beliefs.init
     
@@ -110,7 +123,7 @@ sim.exchange.forceful <- function(G, beliefs.init, forceful.agents, forceful.pro
         j <- meeters[2]
         
         forceful.prob <- list(alpha=ff$alpha[i,j], beta=ff$beta[i,j], gamma=ff$gamma[i,j])
-        new.beliefs <- sim.meeting(beliefs[i], beliefs[j], forceful[i], forceful.prob, eps=eps)
+        new.beliefs <- sim.meeting(beliefs[i], beliefs[j], forceful[i], forceful.prob, eps=eps, diff=diff)
         
         beliefs[i] <- new.beliefs$i.belief
         beliefs[j] <- new.beliefs$j.belief
@@ -119,6 +132,7 @@ sim.exchange.forceful <- function(G, beliefs.init, forceful.agents, forceful.pro
     
     return(list(beliefs.final=beliefs, beliefs.hist=beliefs.hist))
 }
+
 
 # ----------------------------------------------------------------------
 # Document convergence of moments
