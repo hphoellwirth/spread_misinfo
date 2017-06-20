@@ -154,14 +154,14 @@ conv.mean.forceful <- function(G, beliefs.init, T=1000) {
 }
 
 # convergence of the group belief's standard deviation for different spreaders of misinformation
-conv.sd <- function(G, beliefs.init, T=1000) {
+conv.sd <- function(G, beliefs.init, misinfo=5, T=1000) {
     n <- vcount(G)
     conv.table <- matrix(nrow=n, ncol=T+1)
     
     # spread misinformation
     for (i in 1:n) {
         beliefs.start <- beliefs.init
-        beliefs.start[i] <- 5
+        beliefs.start[i] <- misinfo
         beliefs.hist <- sim.exchange(G, beliefs.start, T)$beliefs.hist
         conv.table[i,] <- apply(beliefs.hist, 2, sd)
     }
@@ -178,6 +178,23 @@ conv.sd.forceful <- function(G, beliefs.init, T=1000) {
         beliefs.start <- beliefs.init
         beliefs.start[i] <- 5
         beliefs.hist <- sim.exchange.forceful(G, beliefs.start, forceful.agents=i, forceful.probs=c(0.8,0.2,0.0), eps=0.4, T)$beliefs.hist
+        conv.table[i,] <- apply(beliefs.hist, 2, sd)
+    }
+    return(conv.table)
+}
+
+# (non-)convergence of the group belief's standard deviation for different stubborn agents
+conv.sd.stubborn <- function(G, beliefs.init, T=1000) {
+    n <- vcount(G)
+    agents <- c(seq(1,n),1)
+    conv.table <- matrix(nrow=n, ncol=T+1)
+    
+    # spread misinformation
+    for (i in 1:n) {
+        beliefs.start <- beliefs.init
+        beliefs.start[agents[i]] <- 5
+        beliefs.start[agents[i+1]] <- -5
+        beliefs.hist <- sim.exchange.forceful(G, beliefs.start, forceful.agents=i, forceful.probs=c(1,0,0), eps=0.4, T)$beliefs.hist
         conv.table[i,] <- apply(beliefs.hist, 2, sd)
     }
     return(conv.table)
